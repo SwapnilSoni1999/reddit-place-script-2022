@@ -22,7 +22,8 @@ Then just goto reddit and choose the coordinate row you want to fill.
 
 ```js
 {
-    "image_path": "/home/sonisins/reddit-place-script-2022/green.jpg",
+    // either use green.jpg or saffron.jpg or white.jpg
+    "image_path": "./green.jpg",
     // coordinates on reddit.com
     "image_start_coords": [300, 330], // it will start filling the row from 300 x-axis so choose wisely
     "thread_delay": 2,
