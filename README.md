@@ -8,6 +8,16 @@
 
 This is a script to draw an image onto r/place (<https://www.reddit.com/r/place/>).
 
+<hr>
+
+# INDIAN r/place MODIFICATION AND INFORMATION
+Hi currently the indian flag is on [this](https://www.reddit.com/r/place/?cx=278&cy=322&px=21) place.
+Please check the coordinates. Add the coordinates you wish to fill
+Join the [discord community](https://discord.gg/Azgpqzw9) here
+
+<hr>
+
+
 ## Features
 
 - Support for multiple accounts
@@ -35,7 +45,7 @@ Steps:
 
 
 ## MacOSX
-If you are using MacOSX and encounter an SSL_CERTIFICATE error. Please apply the fix detailed https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify  
+If you are using MacOSX and encounter an SSL_CERTIFICATE error. Please apply the fix detailed https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify
 
 
 ## Get Started
@@ -158,7 +168,7 @@ A dockerfile is provided. Instructions on installing docker are outside the scop
 
 To build: After editing your config.json, run `docker build . -t place-bot`. and wait for the image to build
 
-You can now run with 
+You can now run with
 
 `docker run place-bot`
 
