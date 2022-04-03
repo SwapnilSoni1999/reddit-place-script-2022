@@ -47,28 +47,21 @@ Then just goto reddit and choose the coordinate row you want to fill.
 - Detects existing matching pixels on the r/place map and skips them
 - Automatically converts colors to the r/place color palette
 - Easy(ish) to read output with colors
+- SOCKS proxy support
+- No client id and secret needed
+- Proxies from "proxies.txt" file
+- Tor support
 
 ## Requirements
 
 - [Latest Version of Python 3](https://www.python.org/downloads/)
-- [A Reddit App Client ID and App Secret Key](https://www.reddit.com/prefs/apps)
-
-## How to Get App Client ID and App Secret Key
-
-You need to generate an app client id and app secret key for each account in order to use this script. Or, just create one, and add each username as a developer in the developer app settings. You will need to duplicate the client ID and secret in .env, though.
-
-Steps:
-
-1. Visit <https://www.reddit.com/prefs/apps>
-2. Click "create (another) app" button at very bottom
-3. Select the "script" option and fill in the fields with anything
-
-<img width="383" alt="App ID Screenshot" src="https://user-images.githubusercontent.com/19873803/161398668-0705f122-51d3-4785-8bd9-d6700b586634.png">
-
 
 ## MacOSX
 If you are using MacOSX and encounter an SSL_CERTIFICATE error. Please apply the fix detailed https://stackoverflow.com/questions/42098126/mac-osx-python-ssl-sslerror-ssl-certificate-verify-failed-certificate-verify
 
+If you want to use tor on MacOSX. you'll need to provide your own tor binary and start it manually. deactivate the "use_builtin tor"
+option in the config and make sure you configure your tor to use the specified ports and password. 
+<br>*note that socks proxy connection to tor doesn't work for the time being, so the config value is for an httpTunnel port*
 
 ## Get Started
 
@@ -92,9 +85,6 @@ Note: Please use https://jsonlint.com/ to check that your JSON file is correctly
     "worker1username": {
       // password of account 1
       "password": "password",
-      // appid and secret (see How To Get App Client ID And App Secret Key)
-      "client_id": "clientid",
-      "client_secret": "clientsecret",
       // which pixel of the image to draw first
       "start_coords": [0, 0]
     },
@@ -102,9 +92,6 @@ Note: Please use https://jsonlint.com/ to check that your JSON file is correctly
     "worker1username": {
       // password of account 2
       "password": "password",
-      // appid and secret (see How To Get App Client ID And App Secret Key)
-      "client_id": "clientid",
-      "client_secret": "clientsecret",
       // which pixel of the image to draw first
       "start_coords": [0, 0]
     }
@@ -114,8 +101,8 @@ Note: Please use https://jsonlint.com/ to check that your JSON file is correctly
 ```
 
 ### Notes
-
-- Change image.jpg/png to specify what image to draw. One pixel is drawn every 5 minutes. PNG takes priority over JPG.
+- Use .png if you wish to make use of transparency or non rectangular images
+- If you use 2 factor authentication (2FA) in your account, then change "password" to "password:XXXXXX" where XXXXXX is your 2FA code.
 
 ## Run the Script
 
@@ -125,7 +112,7 @@ Note: Please use https://jsonlint.com/ to check that your JSON file is correctly
 start.bat or startverbose.bat
 ```
 
-### Other OS
+### Unix-like (Linux, MacOS etc.)
 
 ```shell
 chmod +x start.sh startverbose.sh
@@ -149,14 +136,10 @@ Just create multiple child arrays to "workers" in the .json
   "workers": {
     "worker1username": {
       "password": "password",
-      "client_id": "clientid",
-      "client_secret": "clientsecret",
       "start_coords": [0, 0]
     },
     "worker2username": {
       "password": "password",
-      "client_id": "clientid",
-      "client_secret": "clientsecret",
       "start_coords": [0, 50]
     }
   }
@@ -171,18 +154,87 @@ This is useful if you want different threads drawing different parts of the imag
 
 If any JSON decoders errors are found, the `config.json` needs a fix. Make sure to add the below 2 lines in the file.
 
-```text
+```json
 {
     "thread_delay": 2,
     "unverified_place_frequency": false,
+    "proxies": ["1.1.1.1:8080","2.2.2.2:1234"],
+    "compact_logging": true
 }
 ```
 
 - thread_delay - Adds a delay between starting a new thread. Can be used to avoid ratelimiting
 - unverified_place_frequency - Sets the pixel place frequency to the unverified account limit
+- proxies - Sets proxies to use for sending requests to reddit. The proxy used is randomly selected for each request. Can be used to avoid ratelimiting
+- compact_logging - Disables timer text until next pixel
 
 - Transparency can be achieved by using the RGB value (69, 42, 0) in any part of your image
 - If you'd like, you can enable Verbose Mode by adding --verbose to "python main.py". This will output a lot more information, and not neccessarily in the right order, but it is useful for development and debugging.
+- You can also setup proxies by creating a "proxies" and have a new line for each proxies
+
+# Tor
+tor is can be used as an alternative to normal proxies. Note that currently, you cannot use normal proxies and tor at the same time.
+
+```json
+"using_tor": false,
+"tor_port": 1881,
+"tor_control_port": 9051,
+"tor_password": "Passwort",
+"tor_delay": 5,
+"use_builtin_tor": true 
+```
+the config values are as follows:
+- deactivates or activates tor
+- sets the httptunnel port that should be used
+- sets the tor control port
+- sets the password (leave it as "Passwort" if you want to use the default binaries
+- the delay that tor should receive to process a new connection
+- whether the included tor binary should be used. It is preconfigured. If you want to use your own binary, make sure you configure it right.
+
+note that when using the included binaries, only the tunnel port is explicitly set while starting tor.
+
+<h3>If you want to use your own binaries, follow these steps:</h3>
+
+- get tor standalone for your platform [here](https://www.torproject.org/download/tor/). For Windows just use the expert bundle. For MacOS you'll have to compile the binaries yourself or get them from somewhere else, which is both out of the scope of this guide.
+- in your tor folder, create a file named ``torrc``. Copy [this](https://github.com/torproject/tor/blob/main/src/config/torrc.sample.in) into it.
+- Search for ``ControlPort`` in your torrc file and uncomment it. change the port number to your desired control port.
+- Decide on the password you want to use. Run ``tor --hash-password PASSWORD`` from a terminal in the folder with your tor executable, with "PASSWORD" being your desired password. copy the resulting hash.
+- search for ``HashedControlPassword`` and uncomment it. paste the hash value you copied after it.
+- decide on a port for your httptunnel. The default for this script is 1881.
+- fill in your password, your httptunnel port and your control port in this script's ``config.json`` and enable tor with ``using_tor = true``.
+- To start tor, run ``tor --defaults-torrc PATHTOTORRC --HttpTunnelPort TUNNELPORT``, with PATHTOTORRC being your path to the torrc file you created and TUNNELPORT being your httptunnel port.
+- now run the script and (hopefully) everything should work.
+
+license for the included tor binary:
+> Tor is distributed under the "3-clause BSD" license, a commonly used
+software license that means Tor is both free software and open source:
+Copyright (c) 2001-2004, Roger Dingledine
+Copyright (c) 2004-2006, Roger Dingledine, Nick Mathewson
+Copyright (c) 2007-2019, The Tor Project, Inc.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+>- Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+>- Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+>- Neither the names of the copyright owners nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## Docker
 
@@ -195,6 +247,6 @@ You can now run with
 `docker run place-bot`
 
 
-## Developing
+## Contributing
 
-The nox CI job will run flake8 and black on the code. You can also do this locally by pip installing nox on your system and running `nox` in the repository directory.
+See the [Contributing Guide](docs/CONTRIBUTING.md)
