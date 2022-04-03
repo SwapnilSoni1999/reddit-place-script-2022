@@ -15,6 +15,27 @@ Hi currently the indian flag is on [this](https://www.reddit.com/r/place/?cx=278
 Please check the coordinates. Add the coordinates you wish to fill
 Join the [discord community](https://discord.gg/Azgpqzw9) here
 
+- regarding the config.json
+eg. you want to fill the green part
+theres an green.jpg in the project.
+Then just goto reddit and choose the coordinate row you want to fill.
+
+```js
+{
+    "image_path": "/home/sonisins/reddit-place-script-2022/green.jpg",
+    // coordinates on reddit.com
+    "image_start_coords": [300, 330], // it will start filling the row from 300 x-axis so choose wisely
+    "thread_delay": 2,
+    "unverified_place_frequency": "False",
+    "workers": {
+        "sonisins": {
+            // ... other config
+            "start_coords": [0, 0] // keep this as it is for all three colors
+        }
+    }
+}
+
+```
 <hr>
 
 
